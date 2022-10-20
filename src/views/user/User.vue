@@ -36,6 +36,62 @@
           tooltip-effect="dark"
           @selection-change="handleSelectionChange"
         >
+          <el-table-column type="expand">
+            <template slot-scope="scope">
+              <div class="expand_content">
+                <el-descriptions title="用户地址信息" :column="2">
+                  <el-descriptions-item label="用户编号">{{
+                    scope.row.user_id
+                  }}</el-descriptions-item>
+                  <el-descriptions-item label="默认收获地址">
+                    <span v-if="scope.row.defaultAddress === undefined">
+                      暂无地址</span
+                    >
+                    <span v-else>
+                      地址{{ scope.row.defaultAddress }}</span
+                    ></el-descriptions-item
+                  >
+                  <el-descriptions-item label="用户地址" :span="2" />
+                  <el-descriptions-item
+                    :label="'地址' + (index + 1)"
+                    :span="2"
+                    v-for="(address, index) in scope.row.addresses"
+                    :key="address.address_id"
+                    >{{ address.city_code | cityFormat }}/{{ address.location }}
+
+                    <el-button
+                      type="danger"
+                      size="mini"
+                      plain
+                      style="margin-left: 10px"
+                      @click="
+                        deleteUserAddress(
+                          scope.row.addresses,
+                          address.address_id
+                        )
+                      "
+                      >删除</el-button
+                    >
+                    <el-button
+                      v-if="address.state === 0"
+                      type="primary"
+                      size="mini"
+                      plain
+                      style="margin-left: 10px"
+                      @click="
+                        setUserDefaultAddress(
+                          address.address_id,
+                          scope.row.user_id
+                        )
+                      "
+                      >设为默认地址</el-button
+                    ></el-descriptions-item
+                  >
+                </el-descriptions>
+              </div>
+            </template>
+          </el-table-column>
+
           <el-table-column type="selection" align="center" />
 
           <el-table-column
@@ -67,32 +123,32 @@
             </template>
           </el-table-column>
 
-          <el-table-column label="所在城市" align="center" width="220">
+          <el-table-column label="所在地区" align="center" width="220">
             <template slot-scope="scope">
               {{ scope.row.city_code | cityFormat }}
             </template>
           </el-table-column>
 
-          <el-table-column label="喜好" align="center" width="260">
+          <el-table-column label="喜好" align="center" width="200">
             <template slot-scope="scope">
               <el-tag
                 type="primary"
                 v-for="(favor, index) in scope.row.favourite"
                 :key="index"
-                style="margin-right: 5px"
+                style="margin: 0 5px 5px 0"
                 >{{ favor }}</el-tag
               >
             </template>
           </el-table-column>
 
-          <el-table-column align="center" width="240">
+          <el-table-column align="center" width="300">
             <template slot="header">
               <el-input
                 v-model="userSearch"
                 size="mini"
                 @keyup.enter.native="getUserList"
                 @blur="getUserList"
-                placeholder="输入电话号码搜索"
+                placeholder="输入电话号码进行搜索"
               />
             </template>
             <template slot-scope="scope">
@@ -102,6 +158,14 @@
                 plain
                 @click="showEditUserDialog(scope.row)"
                 >编辑</el-button
+              >
+              <el-button
+                type="primary"
+                size="mini"
+                icon="el-icon-plus"
+                plain
+                @click="showAddUserAddressDialog(scope.row.user_id)"
+                >地址</el-button
               >
               <el-button
                 v-if="scope.row.available === 1"
@@ -136,7 +200,7 @@
             @size-change="handleSizeChange"
             @current-change="handleCurrentChange"
             :current-page="page.pageNumber"
-            :page-sizes="[6, 12, 20]"
+            :page-sizes="[8, 14, 22]"
             :page-size="page.pageSize"
             layout="total, sizes, prev, pager, next, jumper"
             :total="page.total"
@@ -264,6 +328,58 @@
         >
       </div>
     </el-dialog>
+
+    <!-- 添加用户地址的Dialog -->
+    <el-dialog
+      :visible.sync="addUserAddressDialogVisiable"
+      width="40%"
+      :close-on-click-modal="false"
+      @close="resetAddUserAddressForm"
+      custom-class="addUserAddressDialog"
+    >
+      <div slot="title" class="title">
+        <i class="el-icon-edit"></i>
+        <span> 新增用户地址信息</span>
+      </div>
+      <el-form
+        :model="addUserAddressForm"
+        label-width="auto"
+        ref="addUserAddressRef"
+        :rules="addUserAddressRules"
+      >
+        <el-form-item label="所在地区" prop="city_code">
+          <el-cascader
+            style="width: 100%"
+            v-model="addUserAddressForm.city_code"
+            :options="citys"
+            size="small"
+            filterable
+            clearable
+            :props="{ expandTrigger: 'hover' }"
+          />
+        </el-form-item>
+        <el-form-item label="地区详细地址" prop="location">
+          <el-input
+            type="textarea"
+            placeholder="请输入所在地区详细地址"
+            v-model="addUserAddressForm.location"
+            maxlength="200"
+            size="small"
+            show-word-limit
+            clearable
+            rows="4"
+          />
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="cartonDialogFooter">
+        <el-button size="small" @click="addUserAddressDialogVisiable = false"
+          >取 消</el-button
+        >
+        <el-button type="primary" size="small" @click="addUserAddress"
+          >确 定</el-button
+        >
+      </div>
+    </el-dialog>
   </el-card>
 </template>
 
@@ -281,6 +397,8 @@ export default {
       userSearch: "",
       //编辑用户信息对话框可见性
       editUserVisible: false,
+      //新增用户地址的dialog可见性
+      addUserAddressDialogVisiable: false,
       //编辑用户信息的表单
       editUserForm: {
         nickname: "",
@@ -291,6 +409,7 @@ export default {
         birthday: "",
         email: "",
       },
+      //编辑用户信息的表单验证规则
       editUserFormRules: {
         favourite: [
           {
@@ -303,7 +422,11 @@ export default {
           { required: true, message: "请选择您的性别", trigger: "blur" },
         ],
         city_code: [
-          { required: true, message: "请选择您的地址", trigger: "blur" },
+          {
+            required: true,
+            message: "请选择您的地区",
+            trigger: ["blur", "change"],
+          },
         ],
         email: [
           {
@@ -324,17 +447,38 @@ export default {
           },
         ],
       },
+      //新增用户收货地址表单
+      addUserAddressForm: {
+        city_code: "",
+        location: "",
+      },
+      //新增用户收货地址表单验证规则
+      addUserAddressRules: {
+        city_code: [
+          {
+            required: true,
+            message: "请选择您的地区",
+            trigger: ["blur", "change"],
+          },
+        ],
+        location: [
+          { required: true, message: "请输入您的详细地址", trigger: "blur" },
+        ],
+      },
       //级联选择器可选城市
       citys,
       //添加服装喜好标签输入框可见性
       addFavoriteTag: false,
       //新的服装喜好标签名
       newFavorTagName: "",
+      //分页所需对象
       page: {
         pageNumber: 1,
-        pageSize: 6,
+        pageSize: 8,
         total: 0,
       },
+      //当前新加收获地址的用户
+      currentUserId: "",
     };
   },
   methods: {
@@ -422,6 +566,7 @@ export default {
       const { data: deleteUserRes } = await this.$http.delete(
         "user/delete/" + user_id
       );
+      if (this.userList.length - 1 === 0) this.page.pageNumber -= 1;
       this.getUserList();
       this.$message({
         message: `${
@@ -459,6 +604,9 @@ export default {
               userIds,
             }
           );
+          if (this.userList.length - userIds.length === 0) {
+            this.page.pageNumber -= 1;
+          }
           this.getUserList();
           this.$message({
             message: `${
@@ -555,10 +703,7 @@ export default {
             userInfo: userInfo,
           }
         );
-        this.$refs.editUserFromRef.resetFields();
-        Object.keys(this.editUserForm).forEach(
-          (key) => (this.editUserForm[key] = "")
-        );
+
         this.editUserVisible = false;
         this.getUserList();
         this.$message({
@@ -573,6 +718,89 @@ export default {
       });
     },
 
+    //展示新增用户地址Dialog对话框并将user_id存入
+    showAddUserAddressDialog(user_id) {
+      this.addUserAddressDialogVisiable = true;
+      this.currentUserId = user_id;
+    },
+
+    //添加用户的收货地址
+    addUserAddress() {
+      this.$refs.addUserAddressRef.validate(async (valid) => {
+        //验证不通过直接返回
+        if (!valid) return;
+        var userAddressObj = this.addUserAddressForm;
+        userAddressObj.user_id = this.currentUserId;
+        userAddressObj.city_code = userAddressObj.city_code.join("-");
+        const { data: addUserAddressRes } = await this.$http.post(
+          "user/add/address",
+          userAddressObj
+        );
+        this.addUserAddressDialogVisiable = false;
+        this.getUserList();
+        this.$message({
+          message: `${
+            addUserAddressRes.code !== 200
+              ? "添加用户地址失败!"
+              : "添加用户地址成功!"
+          }`,
+          type: `${addUserAddressRes.code !== 200 ? "error" : "success"}`,
+          center: true,
+        });
+      });
+    },
+
+    //重置添加用户收货地址表单方法
+    resetAddUserAddressForm() {
+      this.$refs.addUserAddressRef.resetFields();
+      Object.keys(this.addUserAddressForm).forEach(
+        (key) => (this.addUserAddressForm[key] = "")
+      );
+    },
+
+    //删除用户收货地址方法
+    async deleteUserAddress(addresses, address_id) {
+      const { data: deleteUserAddressRes } = await this.$http.post(
+        "user/delete/address",
+        {
+          address_id,
+        }
+      );
+      for (let i = 0; i < addresses.length; i++) {
+        if (addresses[i].address_id === address_id) addresses.splice(i, 1);
+      }
+      this.$message({
+        message: `${
+          deleteUserAddressRes.code !== 200
+            ? "删除用户地址失败!"
+            : "删除用户地址成功!"
+        }`,
+        type: `${deleteUserAddressRes.code !== 200 ? "error" : "success"}`,
+        center: true,
+      });
+    },
+
+    //设置用户的默认收货地址
+    async setUserDefaultAddress(address_id, user_id) {
+      const { data: setUserDefaultAddressRes } = await this.$http.post(
+        "user/address/default",
+        {
+          address_id,
+          user_id,
+        }
+      );
+      this.getUserList();
+      this.$message({
+        message: `${
+          setUserDefaultAddressRes.code !== 200
+            ? "设置用户默认地址失败!"
+            : setUserDefaultAddressRes.msg
+        }`,
+        type: `${setUserDefaultAddressRes.code !== 200 ? "error" : "success"}`,
+        center: true,
+      });
+    },
+
     //跳转到添加新用户页面
     addUser() {
       this.$router.push("/user/add");
@@ -583,37 +811,3 @@ export default {
   },
 };
 </script>
-
-<style lang="less">
-.user {
-  width: 100%;
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  .operation {
-    width: 100%;
-    height: auto;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    margin: 0 0 15px 0;
-  }
-  .table {
-    width: 100%;
-    .page {
-      width: 100%;
-      display: flex;
-      flex-direction: row;
-      justify-content: center;
-      margin-top: 10px;
-    }
-  }
-}
-
-.editUserDialog {
-  border-radius: 10px;
-}
-</style>

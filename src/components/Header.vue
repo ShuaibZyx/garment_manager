@@ -22,50 +22,14 @@ export default {
     logout() {
       window.sessionStorage.removeItem("token");
       //提示退出登录成功
-      this.$message.success("已退出登录");
+      this.$message({
+        message: "已退出登录",
+        type: "success",
+        center: true,
+      });
       //跳转至登陆页面
       this.$router.push("login");
     },
   },
 };
 </script>
-
-<style lang="less">
-.header {
-  width: 100%;
-  padding: 5px 20px;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  .img-box {
-    width: 30px;
-    border-radius: 5px;
-    overflow: hidden;
-  }
-  .title {
-    font-family: 楷体;
-    font-weight: bolder;
-    .logout {
-      font-size: large;
-    }
-    .logout :hover {
-      cursor: pointer;
-      color: skyblue;
-    }
-  }
-  .intro {
-    font-size: 1.6em;
-    font-family: 楷体;
-    color: transparent;
-    background-image: linear-gradient(
-      to right,
-      rgb(161, 161, 150),
-      rgb(0, 0, 0)
-    );
-    background-clip: text;
-    user-select: none;
-    font-weight: 1000;
-  }
-}
-</style>

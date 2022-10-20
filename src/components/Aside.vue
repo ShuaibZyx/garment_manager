@@ -21,31 +21,17 @@
         </template>
       </el-menu-item>
 
-      <el-menu-item index="">
-        <i class="el-icon-sell" />
-        <template slot="title">
-          <span slot="title">促销活动管理</span>
-        </template>
-      </el-menu-item>
-
-      <el-menu-item index="">
+      <el-menu-item index="/hire">
         <i class="el-icon-box" />
         <template slot="title">
           <span slot="title">租赁信息管理</span>
         </template>
       </el-menu-item>
 
-      <el-menu-item index="">
+      <el-menu-item index="/order">
         <i class="el-icon-tickets" />
         <template slot="title">
           <span slot="title">订单信息管理</span>
-        </template>
-      </el-menu-item>
-
-      <el-menu-item index="">
-        <i class="el-icon-truck" />
-        <template slot="title">
-          <span slot="title">物流信息管理</span>
         </template>
       </el-menu-item>
 

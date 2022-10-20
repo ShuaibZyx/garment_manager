@@ -10,6 +10,7 @@ import { v4 as uuid } from "uuid";
 import ElementUI from "element-ui";
 import "./plugins/element.js";
 import "./assets/css/global.less";
+import "./assets/js/lineconnect.js";
 import citys from "./assets/js/citys";
 import lodash from "lodash";
 
@@ -50,15 +51,14 @@ axios.interceptors.request.use(
 // 在response拦截器中隐藏进度条,NProgress.done()
 axios.interceptors.response.use(
   (response) => {
-    if (response.data.code === 403) {
+    if (response.data.code === 401) {
       ElementUI.Message({
         message: "当前登录已失效，请重新登录",
         center: true,
         type: "error",
       });
-      window.sessionStorage.removeItem("userId");
       window.sessionStorage.removeItem("token");
-      router.replace({ path: "/login" });
+      router.push("login");
     }
     Nprogress.done();
     Vue.nextTick(() => {
@@ -85,6 +85,32 @@ Vue.filter("genderFormat", function (gender) {
 //服装状态名称过滤器
 Vue.filter("garmentStateFormat", function (state) {
   return state === 1 ? "可租赁" : state === 0 ? "已下架" : "租赁中";
+});
+
+//订单状态名称过滤器
+Vue.filter("orderStateFormat", function (state) {
+  var stateName = "待付款";
+  switch (state) {
+    case 0:
+      stateName = "待付款";
+      break;
+    case 1:
+      stateName = "待发货";
+      break;
+    case 2:
+      stateName = "待收货";
+      break;
+    case 3:
+      stateName = "待评价";
+      break;
+    case 4:
+      stateName = "已关闭";
+      break;
+    default:
+      stateName = "待付款";
+      break;
+  }
+  return stateName;
 });
 
 //城市名称过滤器

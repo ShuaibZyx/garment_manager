@@ -62,10 +62,11 @@
             </el-form-item>
             <el-form-item label="年龄" prop="age">
               <el-input
-                v-model.number="addUserForm.age"
+                :value="userAge"
                 max="150"
                 type="number"
                 size="small"
+                readonly
                 placeholder="年龄"
               />
             </el-form-item>
@@ -194,6 +195,7 @@ export default {
             message: "不符合手机号码格式",
             trigger: ["blur", "change"],
           },
+          { validator: this.userAccountIsExist, trigger: "blur" },
         ],
         email: [
           {
@@ -235,7 +237,16 @@ export default {
       addFavoriteTag: false,
       //新的服装喜好标签名
       newFavorTagName: "",
+      //该用户
     };
+  },
+  computed: {
+    userAge() {
+      return this.$moment().diff(
+        this.addUserForm.birthday.substring(0, 4),
+        "years"
+      );
+    },
   },
   methods: {
     //添加新的服装标签关闭时
@@ -315,10 +326,11 @@ export default {
         Object.assign(userObj, this.addUserForm);
         userObj.favourite = userObj.favourite.join("-");
         userObj.city_code = userObj.city_code.join("-");
+        userObj.age = this.userAge;
         const { data: addUserRes } = await this.$http.post("user/add", {
           userObj,
         });
-        this.resetUserForm()
+        this.resetUserForm();
         this.$message({
           message: `${
             addUserRes.code !== 200 ? "添加用户失败" : "添加用户成功!"
@@ -328,68 +340,16 @@ export default {
         });
       });
     },
+
+    //判断用户输入的账号是否已经存在，保证电话号码的唯一性
+    async userAccountIsExist(rule, value, callback) {
+      const { data: existRes } = await this.$http.get(
+        "user/account/exist/" + this.addUserForm.account
+      );
+      if (existRes.data) {
+        callback(new Error("该账号已被注册"));
+      }
+    },
   },
 };
 </script>
-
-<style lang="less">
-.addUser {
-  width: 100%;
-  padding: 15px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  .operation {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-    margin-bottom: 10px;
-  }
-  .el-form {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: flex-start;
-    .el-form-item {
-      width: 50%;
-    }
-    .necessary {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      align-items: center;
-    }
-    .choosable {
-      width: 100%;
-      display: flex;
-      flex-direction: row;
-      justify-content: space-around;
-      align-items: flex-start;
-      .left {
-        width: 50%;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        align-items: center;
-      }
-      .right {
-        width: 50%;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        align-items: center;
-      }
-    }
-  }
-  .btns {
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-  }
-}
-</style>

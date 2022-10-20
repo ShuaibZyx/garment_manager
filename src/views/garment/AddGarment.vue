@@ -22,7 +22,7 @@
               <el-input
                 v-model="addGarmentForm.name"
                 size="small"
-                maxlength="15"
+                maxlength="30"
                 clearable
                 placeholder="服装名称"
               />
@@ -72,6 +72,24 @@
                   </span>
                 </div>
               </el-upload>
+            </el-form-item>
+            <el-form-item label="服装拥有者" prop="owner_id">
+              <el-autocomplete
+                placeholder="请输入想要查找的用户账号关键字"
+                v-model="queryInfo"
+                :fetch-suggestions="searchSuggest"
+                class="input-with-select"
+                size="small"
+                clearable
+                autocomplete="on"
+                value-key="account"
+                :debounce="500"
+                @change="addGarmentForm.owner_id = ''"
+                @select="handOwnerSelect"
+                style="width: 100%"
+              >
+                <i class="el-icon-user" slot="prefix" />
+              </el-autocomplete>
             </el-form-item>
             <el-form-item label="服装分类" prop="category">
               <el-select
@@ -237,6 +255,7 @@ export default {
         description: "",
         hire_price: "",
         value: "",
+        owner_id: "",
         size: "",
         color: "",
         file_id: "",
@@ -287,6 +306,13 @@ export default {
             trigger: ["blur", "change"],
           },
         ],
+        owner_id: [
+          {
+            required: true,
+            message: "服装拥有者不能为空",
+            trigger: ["blur", "change"],
+          },
+        ],
         size: [
           {
             required: true,
@@ -332,11 +358,24 @@ export default {
         { label: "旗袍", value: "旗袍" },
         { label: "衬衫", value: "衬衫" },
         { label: "短裤", value: "短裤" },
+        { label: "长袖", value: "长袖" },
         { label: "皮裤", value: "皮裤" },
         { label: "棉衣", value: "棉衣" },
         { label: "打底裤", value: "打底裤" },
         { label: "内衣", value: "内衣" },
         { label: "鞋子", value: "鞋子" },
+        { label: "袜子", value: "袜子" },
+        { label: "马甲", value: "马甲" },
+        { label: "睡衣", value: "睡衣" },
+        { label: "帽子", value: "帽子" },
+        { label: "半身裙", value: "半身裙" },
+        { label: "汉服", value: "汉服" },
+        { label: "JK", value: "JK" },
+        { label: "洛丽塔", value: "洛丽塔" },
+        { label: "秋衣", value: "秋衣" },
+        { label: "风衣", value: "风衣" },
+        { label: "大衣", value: "大衣" },
+        { label: "夹克", value: "夹克" },
       ],
       //可选服装状态
       garmentState: [
@@ -350,6 +389,8 @@ export default {
       previewImgDialogVisible: false,
       //预览所用的图片url
       previewImageUrl: "",
+      //搜索用户的条件
+      queryInfo: "",
     };
   },
   methods: {
@@ -409,11 +450,15 @@ export default {
 
     //重置新增服装表单
     resetAddGarment() {
-      this.$refs.addGarmentFormRef.resetFields();
       Object.keys(this.addGarmentForm).forEach(
         (key) => (this.addGarmentForm[key] = "")
       );
       this.$refs.upload.uploadFiles.pop();
+      this.addGarmentForm.hire_time_min = 1;
+      this.addGarmentForm.hire_time_max = 7;
+      this.addGarmentForm.state = 1;
+      this.queryInfo = "";
+      this.$refs.addGarmentFormRef.resetFields();
       this.$message({
         message: "重置成功!请重新输入",
         type: "success",
@@ -460,65 +505,30 @@ export default {
         center: true,
       });
     },
+
+    //根据条件获取服装拥有者用户列表
+    async searchSuggest(queryString, callback) {
+      //定义一个空数组
+      var list = [];
+      const { data: userSearchRes } = await this.$http.get(
+        "user/garment/" + queryString
+      );
+      //如果获取搜索条件成功，则将条件名推入下拉框数组中
+      if (userSearchRes.code === 200) {
+        userSearchRes.data.forEach((user) => {
+          list.push({
+            value: user.user_id,
+            account: user.account,
+          });
+        });
+      }
+      callback(list);
+    },
+
+    //处理选中拥有者的方法
+    handOwnerSelect(user) {
+      this.addGarmentForm.owner_id = user.value;
+    },
   },
-  mounted() {},
 };
 </script>
-
-<style lang="less">
-.addGarment {
-  width: 100%;
-  padding: 15px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  .title {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-    margin-bottom: 10px;
-  }
-  .el-form {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-    .el-form-item {
-      width: 60%;
-    }
-    .info {
-      width: 100%;
-      display: flex;
-      flex-direction: row;
-      justify-content: center;
-      align-items: flex-start;
-      .left {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: flex-start;
-        width: 50%;
-      }
-      .right {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: flex-start;
-        width: 50%;
-      }
-    }
-    .desc {
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-  }
-}
-
-.hide .el-upload--picture-card {
-  display: none;
-}
-</style>
