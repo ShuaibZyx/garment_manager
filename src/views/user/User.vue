@@ -253,10 +253,11 @@
         </el-form-item>
         <el-form-item label="年龄" prop="age">
           <el-input
-            v-model.number="editUserForm.age"
+            :value="userAge"
             max="150"
             type="number"
             size="small"
+            readonly
             placeholder="年龄"
           />
         </el-form-item>
@@ -481,6 +482,14 @@ export default {
       currentUserId: "",
     };
   },
+  computed: {
+    userAge() {
+      return this.$moment().diff(
+        this.editUserForm.birthday.substring(0, 4),
+        "years"
+      );
+    },
+  },
   methods: {
     //获取所有用户信息
     async getUserList() {
@@ -697,6 +706,7 @@ export default {
         Object.assign(userInfo, this.editUserForm);
         userInfo.favourite = userInfo.favourite.join("-");
         userInfo.city_code = userInfo.city_code.join("-");
+        userInfo.age = this.userAge;
         const { data: editUserInfoRes } = await this.$http.post(
           "user/updateinfo",
           {

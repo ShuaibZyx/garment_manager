@@ -18,7 +18,7 @@
           :data="
             orderList.filter(
               (data) =>
-                !orderSearch || data.renter.account.includes(orderSearch)
+                !orderSearch || data.renter?.account.includes(orderSearch)
             )
           "
           style="width: 100%"
@@ -33,7 +33,10 @@
         >
           <el-table-column type="expand">
             <template slot-scope="scope">
-              <div class="expand_content">
+              <div
+                class="expand_content"
+                v-if="scope.row.hireInfo !== undefined"
+              >
                 <el-descriptions title="租赁信息" :column="4">
                   <el-descriptions-item label="租赁Id">{{
                     scope.row.hireInfo.hire_id
@@ -48,7 +51,11 @@
                     scope.row.hireInfo.create_time | dateFormat
                   }}</el-descriptions-item>
                 </el-descriptions>
-                <el-descriptions title="服装信息" :column="4">
+                <el-descriptions
+                  v-if="scope.row.garment !== undefined"
+                  title="服装信息"
+                  :column="4"
+                >
                   <el-descriptions-item label="服装Id">{{
                     scope.row.garment.garment_id
                   }}</el-descriptions-item>
@@ -62,7 +69,12 @@
                     {{ scope.row.garment.hire_price }}元/天
                   </el-descriptions-item>
                 </el-descriptions>
-                <el-descriptions title="租赁用户" :column="4">
+                <div v-else>服装信息跑路咯~😂</div>
+                <el-descriptions
+                  v-if="scope.row.renter !== undefined"
+                  title="租赁用户"
+                  :column="4"
+                >
                   <el-descriptions-item label="昵称">{{
                     scope.row.renter.nickname
                   }}</el-descriptions-item>
@@ -73,7 +85,9 @@
                     {{ scope.row.renter.user_id }}</el-descriptions-item
                   >
                 </el-descriptions>
+                <div v-else>租赁人信息跑路咯~😂</div>
               </div>
+              <div v-else>租赁信息跑路咯~😂</div>
             </template>
           </el-table-column>
 
@@ -88,15 +102,24 @@
 
           <el-table-column label="订单用户" align="center">
             <template slot-scope="scope">
-              {{
-                scope.row.renter.nickname + "(" + scope.row.renter.account + ")"
-              }}
+              <span v-if="scope.row.renter !== undefined">
+                {{
+                  scope.row.renter.nickname +
+                  "(" +
+                  scope.row.renter.account +
+                  ")"
+                }}
+              </span>
+              <span v-else>租赁信息跑路咯~😂</span>
             </template>
           </el-table-column>
 
           <el-table-column label="租赁服装" align="center" prop="hire_id">
             <template slot-scope="scope">
-              {{ scope.row.garment.name }}
+              <span v-if="scope.row.garment !== undefined">
+                {{ scope.row.garment.name }}
+              </span>
+              <span v-else>租赁信息跑路咯~😂</span>
             </template>
           </el-table-column>
 

@@ -17,7 +17,7 @@
         <el-table
           :data="
             hireList.filter(
-              (data) => !hireSearch || data.renter.account.includes(hireSearch)
+              (data) => !hireSearch || data.renter?.account.includes(hireSearch)
             )
           "
           style="width: 100%"

@@ -518,7 +518,7 @@ export default {
         userSearchRes.data.forEach((user) => {
           list.push({
             value: user.user_id,
-            account: user.account,
+            account: `${user.account}(${user.nickname})`,
           });
         });
       }

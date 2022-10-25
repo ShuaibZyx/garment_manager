@@ -386,6 +386,9 @@ export default {
     total_price() {
       return this.currentHireGarment.hire_price * this.hireForm.day;
     },
+    hire_time_min() {
+      return this.currentHireGarment.hire_time_min;
+    },
   },
   methods: {
     //获取所有服装信息
@@ -536,7 +539,7 @@ export default {
         userSearchRes.data.forEach((user) => {
           list.push({
             value: user.user_id,
-            account: user.account,
+            account: `${user.account}(${user.nickname})`,
           });
         });
       }
@@ -560,6 +563,7 @@ export default {
       }
       this.hireForm.owner_id = garment.owner_id;
       this.hireForm.garment_id = garment.garment_id;
+      this.hireForm.day = this.hire_time_min;
       this.hireFormRules.day[1].max = parseInt(
         this.currentHireGarment.hire_time_max
       );
