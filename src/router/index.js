@@ -11,7 +11,7 @@ const Garment = () => import("../views/garment/Garment.vue");
 const AddGarment = () => import("../views/garment/AddGarment.vue");
 const Hire = () => import("../views/hire/Hire.vue");
 const Order = () => import("../views/order/Order.vue");
-const AddLogistics = () => import("../views/logistics/AddLogistics.vue");
+const Logistics = () => import("../views/logistics/Logistics.vue");
 const originalPush = VueRouter.prototype.push;
 
 VueRouter.prototype.push = function push(location) {
@@ -33,7 +33,7 @@ const router = new VueRouter({
         { path: "/garment/add", component: AddGarment },
         { path: "/hire", component: Hire },
         { path: "/order", component: Order },
-        { path: "/addlogistics", component: AddLogistics },
+        { path: "/logistics/:orderId", component: Logistics },
       ],
     },
   ],

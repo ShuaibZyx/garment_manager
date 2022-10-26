@@ -74,6 +74,55 @@
           >确 定</el-button
         >
       </div>
+      <el-divider />
+      <div class="operation">
+        <span class="title">当前订单编号:{{ orderId }}</span>
+        <div class="table" v-if="orderLogisticsList.length > 0">
+          <el-table
+            :data="orderLogisticsList"
+            style="width: 100%"
+            fit
+            lazy
+            :stripe="true"
+            :border="true"
+            :highlight-current-row="true"
+            empty-text="暂无数据"
+            tooltip-effect="dark"
+          >
+            <el-table-column
+              type="index"
+              label="序号"
+              align="center"
+              width="50"
+            />
+
+            <el-table-column align="center" label="所属地区">
+              <template slot-scope="scope">
+                {{ scope.row.city_code | cityFormat }}
+              </template>
+            </el-table-column>
+            <el-table-column align="center" prop="location" label="详细地址" />
+            <el-table-column align="center" label="创建时间">
+              <template slot-scope="scope">
+                {{ scope.row.create_time | dateFormat }}
+              </template>
+            </el-table-column>
+            <el-table-column align="center" width="140" label="操作">
+              <template slot-scope="scope">
+                <el-button
+                  type="danger"
+                  size="mini"
+                  plain
+                  @click="deleteLogistics(scope.row.logistics_id)"
+                  >删除</el-button
+                >
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+        <!-- 暂无数据填充 -->
+        <el-empty description="暂无数据" v-else />
+      </div>
     </div>
   </el-card>
 </template>
@@ -81,7 +130,7 @@
 <script>
 import citys from "../../assets/js/citys";
 export default {
-  name: "AddLogistics",
+  name: "Logistics",
   data() {
     return {
       //物流地址对象
@@ -119,6 +168,12 @@ export default {
       citys,
       //搜索订单信息的条件
       queryInfo: "",
+      //订单Id
+      orderId: "",
+      //当前订单下的所有物流地址
+      orderLogisticsList: [],
+      //搜索物流信息的条件
+      logisticsSearch: "",
     };
   },
   methods: {
@@ -159,6 +214,7 @@ export default {
       });
     },
 
+    //添加物流信息方法
     addLogistics() {
       this.$refs.logisticsFormRef.validate(async (valid) => {
         if (!valid) return;
@@ -187,6 +243,40 @@ export default {
         });
       });
     },
+
+    //根据订单Id获取物流信息
+    async getLogisticsByOrderId() {
+      if (this.orderId.toString().length < 19) return;
+      const { data: logisticsListRes } = await this.$http.get(
+        "logistics/infoes/" + this.orderId
+      );
+      for (let i = 0; i < logisticsListRes.data.length; i++) {
+        logisticsListRes.data[i].city_code =
+          logisticsListRes.data[i].city_code.split("-");
+      }
+      this.orderLogisticsList = logisticsListRes.data;
+    },
+
+    //删除物流信息方法
+    async deleteLogistics(logistics_id) {
+      const { data: deleteLogisticsRes } = await this.$http.delete(
+        "logistics/delete/" + logistics_id
+      );
+      this.this.$message({
+        message: `${
+          deleteLogisticsRes.code !== 200
+            ? "删除物流信息失败"
+            : "删除物流信息成功!"
+        }`,
+        type: `${deleteLogisticsRes.code !== 200 ? "error" : "success"}`,
+        center: true,
+      });
+    },
+  },
+  mounted() {
+    this.orderId = this.$route.params.orderId;
+    this.getLogisticsByOrderId();
   },
 };
 </script>
+

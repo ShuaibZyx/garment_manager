@@ -102,14 +102,22 @@
 
           <el-table-column label="订单用户" align="center">
             <template slot-scope="scope">
-              <span v-if="scope.row.renter !== undefined">
-                {{
-                  scope.row.renter.nickname +
-                  "(" +
-                  scope.row.renter.account +
-                  ")"
-                }}
-              </span>
+              <div v-if="scope.row.renter !== undefined">
+                <el-tooltip
+                  :content="scope.row.order_id"
+                  effect="light"
+                  placement="top"
+                >
+                  <span>
+                    {{
+                      scope.row.renter.nickname +
+                      "(" +
+                      scope.row.renter.account +
+                      ")"
+                    }}</span
+                  >
+                </el-tooltip>
+              </div>
               <span v-else>租赁信息跑路咯~😂</span>
             </template>
           </el-table-column>
@@ -228,6 +236,7 @@
         <el-button size="small" @click="logisticsListVisiable = false"
           >关 闭</el-button
         >
+        <el-button size="small" @click="manageLogistics">管 理</el-button>
       </div>
     </el-dialog>
   </el-card>
@@ -254,6 +263,8 @@ export default {
       logisticsList: [],
       //订单物流信息dialog可见性
       logisticsListVisiable: false,
+      //当前展示物流信息的订单Id
+      currentOrderId: "",
     };
   },
   methods: {
@@ -371,6 +382,7 @@ export default {
 
     //根据订单Id获取该订单的物流信息
     async getLogisticsListByOrderId(order_id) {
+      this.currentOrderId = order_id;
       const { data: orderLogisticsListRes } = await this.$http.get(
         "logistics/infoes/" + order_id
       );
@@ -380,6 +392,11 @@ export default {
           this.logisticsList[i].city_code.split("-");
       }
       this.logisticsListVisiable = true;
+    },
+
+    //跳转至物流信息管理页面
+    manageLogistics() {
+      this.$router.push("/logistics/" + this.currentOrderId);
     },
   },
   mounted() {
