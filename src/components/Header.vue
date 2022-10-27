@@ -21,6 +21,7 @@ export default {
     //退出登陆方法
     logout() {
       window.sessionStorage.removeItem("token");
+      this.$cookies.remove("token");
       //提示退出登录成功
       this.$message({
         message: "已退出登录",

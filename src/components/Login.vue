@@ -72,7 +72,7 @@
                   @focus.once="showClearBox"
                   placeholder="请输入管理员账号"
                   :maxlength="11"
-                  @keyup.enter.native="isShowValid = true"
+                  @keyup.enter.native="showValid"
                 />
               </el-form-item>
               <el-form-item prop="password">
@@ -88,7 +88,7 @@
                   :maxlength="15"
                   :show-password="true"
                   @focus.once="showClearBox"
-                  @keyup.enter.native="isShowValid = true"
+                  @keyup.enter.native="showValid"
                 />
               </el-form-item>
               <el-form-item>
@@ -100,7 +100,7 @@
                     plain
                     icon="el-icon-check"
                     style="width: 95%"
-                    @click="isShowValid = true"
+                    @click="showValid"
                     >登录</el-button
                   >
                 </div>
@@ -108,6 +108,9 @@
             </el-form>
           </el-tab-pane>
         </el-tabs>
+      </div>
+      <div class="btns">
+        <el-checkbox v-model="autoLogin">7天免登录</el-checkbox>
       </div>
       <div class="context">
         <div class="logoImg">
@@ -151,6 +154,8 @@ export default {
       signName: "Login",
       // 图形验证码模态框是否出现
       isShowValid: false,
+      //7天免登录
+      autoLogin: true,
       //滑块验证成功时显示的文字
       validSuccessText: "你太棒了",
     };
@@ -163,7 +168,7 @@ export default {
         //验证不通过直接返回
         if (!valid) return;
         //登录权限有效时间
-        var expiresIn = 60 * 60 * 24;
+        var expiresIn = this.autoLogin ? 60 * 60 * 24 * 7 : 2 * 60 * 60;
         //对密码进行加密
         const password = Base64.encode(
           CryptoJS.encrypt(this.loginForm.password)
@@ -177,6 +182,10 @@ export default {
         //将返回的token存入session
         const token = loginRes.data;
         window.sessionStorage.setItem("token", JSON.stringify(token));
+        //将token值存入cookie用户实现7天免登录
+        if (this.autoLogin)
+          this.$cookies.set("token", JSON.stringify(token), "7d");
+        //跳转路由
         this.$router.push("home");
         //提示用户登录状态
         this.$message({
@@ -184,6 +193,15 @@ export default {
           type: `${loginRes.code !== 200 ? "error" : "success"}`,
           center: true,
         });
+      });
+    },
+
+    //展示滑块所用方法
+    showValid() {
+      this.$refs.loginFormRef.validate((valid) => {
+        //验证不通过直接返回
+        if (!valid) return;
+        this.isShowValid = true;
       });
     },
 
@@ -204,6 +222,13 @@ export default {
     showClearBox() {
       this.$refs.loginBoxRef.style.opacity = 0.95;
     },
+  },
+  mounted() {
+    const token = JSON.parse(this.$cookies.get("token"));
+    if (token) {
+      window.sessionStorage.setItem("token", JSON.stringify(token));
+      this.$router.push("home");
+    }
   },
 };
 </script>

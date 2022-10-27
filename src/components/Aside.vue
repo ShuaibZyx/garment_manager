@@ -13,6 +13,12 @@
           <span slot="title">用户信息管理</span>
         </template>
       </el-menu-item>
+      <el-menu-item index="/user">
+        <i class="el-icon-user" />
+        <template slot="title">
+          <span slot="title">用户信息管理</span>
+        </template>
+      </el-menu-item>
 
       <el-menu-item index="/garment">
         <i class="el-icon-goods" />
