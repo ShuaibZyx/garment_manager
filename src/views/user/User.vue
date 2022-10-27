@@ -510,7 +510,7 @@ export default {
     handleSizeChange(newSize) {
       const temporaryTotal = this.page.pageSize * this.page.pageNumber;
       this.page.pageSize = newSize;
-      this.page.pageNumber = temporaryTotal / this.page.pageSize + 1;
+      this.page.pageNumber = parseInt(temporaryTotal / newSize) + 1;
       this.getUserList();
     },
 
