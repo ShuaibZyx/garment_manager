@@ -508,9 +508,8 @@ export default {
 
     //处理页面大小发生变化的方法
     handleSizeChange(newSize) {
-      const temporaryTotal = this.page.pageSize * this.page.pageNumber;
       this.page.pageSize = newSize;
-      this.page.pageNumber = parseInt(temporaryTotal / newSize) + 1;
+      this.page.pageNumber = parseInt(this.page.total / newSize);
       this.getUserList();
     },
 

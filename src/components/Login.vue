@@ -189,7 +189,7 @@ export default {
         this.$router.push("home");
         //提示用户登录状态
         this.$message({
-          message: `${loginRes.code !== 200 ? "登录失败!" : "登录成功!"}`,
+          message: loginRes.msg,
           type: `${loginRes.code !== 200 ? "error" : "success"}`,
           center: true,
         });
